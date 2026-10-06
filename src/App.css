@@ -93,3 +93,90 @@ button.primary:active {
 .page canvas {
   display: block;
 }
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.preview {
+  margin-left: auto;
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+}
+
+/* Modal de firma: centrado fijo y tamaño grande, siempre en el mismo lugar. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(31, 41, 55, 0.5);
+  z-index: 10;
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(92vw, 1100px);
+  height: min(50vh, 720px);
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.modal h2 {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.sign-canvas {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.modal-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.colors,
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.swatch {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.swatch.on {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.colors input[type="color"] {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: none;
+}
