@@ -17,6 +17,4 @@ Consejos:
 
 Para aplicarlo: `npm run tauri build` (genera los íconos y arma el instalador).
 Para probarlo en desarrollo: `npm run icons` y luego `npm run tauri dev`.
-Para volver al genérico: borrá los archivos de esta carpeta y corré `npm run icons`.
-
-`npm run icons` reescribe `src-tauri/icons/`.
+Para volver al ícono genérico (aunque haya archivos acá): `npm run icons:generic`.
