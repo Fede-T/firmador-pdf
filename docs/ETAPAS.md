@@ -16,7 +16,7 @@ Cada etapa se verifica antes de pasar a la siguiente. No se hace push hasta que 
 - Botones Borrar, Cancelar y Aceptar.
 
 ## 3. Colocación y edición
-- La firma aparece en el centro de la página visible.
+- La firma sigue el rastro del mouse y se aplica al momento de clickear (sigue siendo posible moverla arrastrandola).
 - Arrastrar, redimensionar desde las esquinas con proporción fija, eliminar con botón y con Supr.
 - Límites de página, coordenadas relativas a la página (independientes del zoom), duplicar.
 - Mínimo 10 firmas en distintas páginas.

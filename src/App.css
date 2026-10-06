@@ -99,10 +99,81 @@ button:disabled {
   cursor: default;
 }
 
-.preview {
-  margin-left: auto;
-  border: 1px dashed var(--border);
-  border-radius: 4px;
+.hint {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* Firmas colocadas */
+.sig {
+  position: absolute;
+  touch-action: none;
+  cursor: move;
+  user-select: none;
+}
+
+.sig.selected {
+  outline: 1.5px solid var(--primary);
+}
+
+.sig.ghost {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Mientras se coloca una firma, un clic siempre coloca (aunque haya otra debajo). */
+.page.placing .sig {
+  pointer-events: none;
+}
+
+.handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  border: 1.5px solid var(--primary);
+  border-radius: 2px;
+}
+
+.handle.nw { left: -6px; top: -6px; cursor: nwse-resize; }
+.handle.se { right: -6px; bottom: -6px; cursor: nwse-resize; }
+.handle.ne { right: -6px; top: -6px; cursor: nesw-resize; }
+.handle.sw { left: -6px; bottom: -6px; cursor: nesw-resize; }
+
+.sig-actions {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(100% + 8px);
+  display: flex;
+  gap: 6px;
+  cursor: default;
+}
+
+.sig-actions.below {
+  bottom: auto;
+  top: calc(100% + 8px);
+}
+
+.sig-actions button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.sig-actions button:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.sig-actions button.danger:hover:not(:disabled) {
+  border-color: var(--error);
+  color: var(--error);
 }
 
 /* Modal de firma: centrado fijo y tamaño grande, siempre en el mismo lugar. */
