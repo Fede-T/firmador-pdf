@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { open } from "@tauri-apps/plugin-dialog";
-import { readFile } from "@tauri-apps/plugin-fs";
+import { open, save } from "@tauri-apps/plugin-dialog";
+import { readFile, writeFile } from "@tauri-apps/plugin-fs";
 import { openPdf, type PDFDocumentProxy, type PDFPageProxy } from "./pdf";
 import PdfPage from "./PdfPage";
+import { stampSignatures } from "./save";
 import SignatureModal from "./SignatureModal";
 import type { Placed, Signature } from "./signature";
 import "./App.css";
@@ -19,7 +20,9 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   // Firma que sigue al mouse hasta que se hace clic en una página.
   const [pending, setPending] = useState<{ sig: Signature; w?: number } | null>(null);
+  const [notice, setNotice] = useState("");
   const nextId = useRef(0);
+  const file = useRef<{ path: string; bytes: Uint8Array } | null>(null); // PDF abierto
   const doc = useRef<PDFDocumentProxy | null>(null);
   const viewer = useRef<HTMLElement>(null);
 
@@ -43,22 +46,50 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKey);
   });
 
+  // Muestra el PDF. Lanza si no se puede abrir (se conserva el que estaba).
+  async function cargar(bytes: Uint8Array, keepScroll = false) {
+    const next = await openPdf(bytes);
+    await doc.current?.loadingTask.destroy();
+    doc.current = next;
+    setPages(await Promise.all(Array.from({ length: next.numPages }, (_, i) => next.getPage(i + 1))));
+    if (!keepScroll) viewer.current!.scrollTop = 0; // documento nuevo: arrancar desde arriba
+    setPlaced([]); // las firmas pertenecen al PDF abierto (o ya quedaron estampadas en él)
+    setSelectedId(null);
+    setPending(null);
+  }
+
   async function abrir() {
     const path = await open({ filters: [{ name: "PDF", extensions: ["pdf"] }] });
     if (!path) return;
     try {
-      const next = await openPdf(await readFile(path));
-      await doc.current?.loadingTask.destroy();
-      doc.current = next;
-      setPages(await Promise.all(Array.from({ length: next.numPages }, (_, i) => next.getPage(i + 1))));
-      viewer.current!.scrollTop = 0; // documento nuevo: arrancar desde arriba
-      setPlaced([]); // las firmas pertenecen al PDF abierto
-      setSelectedId(null);
-      setPending(null);
+      const bytes = await readFile(path);
+      await cargar(bytes);
+      file.current = { path, bytes };
       setError("");
+      setNotice("");
     } catch (e) {
-      // Si falla, se conserva el documento que ya estaba abierto.
       setError(e instanceof Error ? e.message : "No se pudo abrir el archivo.");
+    }
+  }
+
+  // "Guardar como": el diálogo propone el mismo nombre y carpeta del original, así que aceptar
+  // lo sobrescribe (Windows pide confirmar). El PDF nuevo se arma entero en memoria antes de
+  // escribir. Después se recarga el PDF guardado, para que un segundo guardado no estampe las
+  // firmas dos veces.
+  async function guardar() {
+    const f = file.current!;
+    const path = await save({ defaultPath: f.path, filters: [{ name: "PDF", extensions: ["pdf"] }] });
+    if (!path) return;
+    try {
+      const out = await stampSignatures(f.bytes, pages, placed);
+      await writeFile(path, out);
+      file.current = { path, bytes: out };
+      await cargar(out, true);
+      setError("");
+      setNotice("Guardado.");
+    } catch {
+      setNotice("");
+      setError("No se pudo guardar. Verificá que el archivo no esté abierto en otro programa.");
     }
   }
 
@@ -72,6 +103,7 @@ export default function App() {
     setPlaced((l) => [...l, { id, sig: pending!.sig, page, x, y, w }]);
     setSelectedId(id);
     setPending(null);
+    setNotice("");
   }
 
   return (
@@ -83,6 +115,10 @@ export default function App() {
         <button onClick={() => setSigning(true)} disabled={pages.length === 0}>
           Agregar firma
         </button>
+        <button className="primary" onClick={guardar} disabled={placed.length === 0}>
+          Guardar como
+        </button>
+        {notice && <span className="hint">{notice}</span>}
         {pending && <span className="hint">Hacé clic en la página para colocar la firma (Esc cancela).</span>}
         {error && <span className="error">{error}</span>}
       </header>

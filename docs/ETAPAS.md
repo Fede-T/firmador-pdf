@@ -22,13 +22,13 @@ Cada etapa se verifica antes de pasar a la siguiente. No se hace push hasta que 
 - Mínimo 10 firmas en distintas páginas.
 
 ## 4. Guardado
-- "Guardar como" con nombre sugerido `<original>-firmado.pdf`.
+- "Guardar como" con nombre sugerido `<original>.pdf`.
 - Estampado vectorial con `pdf-lib`, fondo transparente.
 - Páginas rotadas y CropBox distinto de MediaBox.
-- El original no se modifica.
 
 ## 5. Cierre
 - CSP estricta y revisión de permisos.
 - Prueba offline.
 - README (desarrollo e instalador) y `npm run tauri build`.
+- Agregar credito y cambiar icono de app.
 - Revisión de los criterios de aceptación del BRIEF.

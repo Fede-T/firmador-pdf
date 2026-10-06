@@ -73,13 +73,13 @@ export function smooth(stroke: Stroke, size: number): Sample[] {
   const last = pts[pts.length - 1];
   out.push({ x: last.x, y: last.y, w: widthFor(size, last.p) });
 
-  // Puntas afinadas: el grosor crece desde 35% hasta 100% en los primeros/últimos ~4 grosores.
+  // Puntas afinadas: el grosor crece desde 60% hasta 100% en los primeros/últimos ~4 grosores.
   const len = [0];
   for (let i = 1; i < out.length; i++) len.push(len[i - 1] + Math.hypot(out[i].x - out[i - 1].x, out[i].y - out[i - 1].y));
   const total = len[len.length - 1];
   const ramp = size * 4;
   if (total > ramp * 2) {
-    out.forEach((s, i) => (s.w *= 0.35 + 0.65 * Math.min(1, len[i] / ramp, (total - len[i]) / ramp)));
+    out.forEach((s, i) => (s.w *= 0.60 + 0.40 * Math.min(1, len[i] / ramp, (total - len[i]) / ramp)));
   }
   return out;
 }
