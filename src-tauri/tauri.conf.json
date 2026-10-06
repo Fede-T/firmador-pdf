@@ -12,9 +12,9 @@
   "app": {
     "windows": [
       {
-        "title": "firmador-pdf",
-        "width": 800,
-        "height": 600
+        "title": "Firmador de PDF",
+        "width": 1100,
+        "height": 800
       }
     ],
     "security": {

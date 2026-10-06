@@ -1,51 +1,59 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
+import { useEffect, useRef, useState } from "react";
+import { open } from "@tauri-apps/plugin-dialog";
+import { readFile } from "@tauri-apps/plugin-fs";
+import { openPdf, type PDFDocumentProxy, type PDFPageProxy } from "./pdf";
+import PdfPage from "./PdfPage";
 import "./App.css";
 
-function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+const MAX_PAGE_WIDTH = 1000;
+const GUTTER = 48; // margen horizontal del visor
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
+export default function App() {
+  const [pages, setPages] = useState<PDFPageProxy[]>([]);
+  const [error, setError] = useState("");
+  const [width, setWidth] = useState(MAX_PAGE_WIDTH);
+  const doc = useRef<PDFDocumentProxy | null>(null);
+  const viewer = useRef<HTMLElement>(null);
+
+  // Las páginas se ajustan al ancho disponible del visor.
+  useEffect(() => {
+    const ro = new ResizeObserver(([e]) =>
+      setWidth(Math.min(MAX_PAGE_WIDTH, Math.floor(e.contentRect.width) - GUTTER)),
+    );
+    ro.observe(viewer.current!);
+    return () => ro.disconnect();
+  }, []);
+
+  async function abrir() {
+    const path = await open({ filters: [{ name: "PDF", extensions: ["pdf"] }] });
+    if (!path) return;
+    try {
+      const next = await openPdf(await readFile(path));
+      await doc.current?.loadingTask.destroy();
+      doc.current = next;
+      setPages(await Promise.all(Array.from({ length: next.numPages }, (_, i) => next.getPage(i + 1))));
+      viewer.current!.scrollTop = 0; // documento nuevo: arrancar desde arriba
+      setError("");
+    } catch (e) {
+      // Si falla, se conserva el documento que ya estaba abierto.
+      setError(e instanceof Error ? e.message : "No se pudo abrir el archivo.");
+    }
   }
 
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
-
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
+    <>
+      <header className="toolbar">
+        <button className="primary" onClick={abrir}>
+          Abrir PDF
+        </button>
+        {error && <span className="error">{error}</span>}
+      </header>
+      <main ref={viewer} className="viewer">
+        {pages.length === 0 && !error && <p className="empty">Abrí un PDF para empezar.</p>}
+        {pages.map((p) => (
+          <PdfPage key={p.pageNumber} page={p} width={width} />
+        ))}
+      </main>
+    </>
   );
 }
-
-export default App;
