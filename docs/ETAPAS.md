@@ -30,5 +30,5 @@ Cada etapa se verifica antes de pasar a la siguiente. No se hace push hasta que 
 - CSP estricta y revisión de permisos.
 - Prueba offline.
 - README (desarrollo e instalador) y `npm run tauri build`.
-- Agregar credito y cambiar icono de app.
+- Crédito y ícono de la app.
 - Revisión de los criterios de aceptación del BRIEF.

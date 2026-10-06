@@ -8,6 +8,11 @@ import SignatureModal from "./SignatureModal";
 import type { Placed, Signature } from "./signature";
 import "./App.css";
 
+// Logotipo opcional: branding/logotype.svg|png (ver branding/README.md). Sin archivo, no se muestra nada.
+const logotype = Object.values(
+  import.meta.glob("/branding/logotype.{svg,png}", { eager: true, query: "?url", import: "default" }),
+)[0] as string | undefined;
+
 const MAX_PAGE_WIDTH = 1000;
 const GUTTER = 48; // margen horizontal del visor
 
@@ -123,7 +128,13 @@ export default function App() {
         {error && <span className="error">{error}</span>}
       </header>
       <main ref={viewer} className="viewer">
-        {pages.length === 0 && !error && <p className="empty">Abrí un PDF para empezar.</p>}
+        {pages.length === 0 && !error && (
+          <div className="empty">
+            {logotype && <img src={logotype} className="logotype" alt="" />}
+            <p>Abrí un PDF para empezar.</p>
+            <small className="credit">Firmador de PDF · Desarrollado por Federico Troncoso</small>
+          </div>
+        )}
         {pages.map((p) => (
           <PdfPage
             key={p.pageNumber}

@@ -1,12 +1,12 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "firmador-pdf",
+  "productName": "Firmador de PDF",
   "version": "0.1.0",
   "identifier": "ar.com.mpn.firmador",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "npm run build",
+    "beforeBuildCommand": "npm run icons && npm run build",
     "frontendDist": "../dist"
   },
   "app": {
@@ -18,12 +18,17 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; worker-src 'self' blob:; connect-src ipc: http://ipc.localhost",
+      "devCsp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; worker-src 'self' blob:; connect-src 'self' ws://localhost:1420 ipc: http://ipc.localhost"
     }
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["nsis"],
+    "publisher": "Federico Troncoso",
+    "copyright": "© Federico Troncoso",
+    "shortDescription": "Firma PDFs con tableta gráfica, sin conexión.",
+    "windows": { "nsis": { "languages": ["Spanish"] } },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
