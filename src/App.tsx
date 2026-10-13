@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { readFile, writeFile } from "@tauri-apps/plugin-fs";
 import { openPdf, type PDFDocumentProxy, type PDFPageProxy } from "./pdf";
+import HelpModal from "./HelpModal";
 import PdfPage from "./PdfPage";
 import { stampSignatures } from "./save";
 import SignatureModal from "./SignatureModal";
@@ -21,6 +22,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [width, setWidth] = useState(MAX_PAGE_WIDTH);
   const [signing, setSigning] = useState(false);
+  const [help, setHelp] = useState(false);
   const [placed, setPlaced] = useState<Placed[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   // Firma que sigue al mouse hasta que se hace clic en una página.
@@ -43,7 +45,7 @@ export default function App() {
   // Supr elimina la firma seleccionada; Esc cancela la colocación o deselecciona.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (signing) return;
+      if (signing || help) return;
       if (e.key === "Delete" && selectedId !== null) remove(selectedId);
       if (e.key === "Escape") (pending ? setPending(null) : setSelectedId(null));
     };
@@ -126,6 +128,9 @@ export default function App() {
         {notice && <span className="hint">{notice}</span>}
         {pending && <span className="hint">Hacé clic en la página para colocar la firma (Esc cancela).</span>}
         {error && <span className="error">{error}</span>}
+        <button className="help-btn" onClick={() => setHelp(true)}>
+          Ayuda
+        </button>
       </header>
       <main ref={viewer} className="viewer">
         {pages.length === 0 && !error && (
@@ -156,6 +161,7 @@ export default function App() {
           />
         ))}
       </main>
+      {help && <HelpModal onClose={() => setHelp(false)} />}
       {signing && (
         <SignatureModal
           onAccept={(s) => {

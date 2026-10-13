@@ -303,3 +303,50 @@ button:disabled {
   border-radius: 6px;
   background: none;
 }
+
+/* Ayuda */
+.help-btn {
+  margin-left: auto;
+}
+
+.modal.help {
+  width: min(92vw, 640px);
+  height: auto;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+.help ol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding-left: 22px;
+}
+
+.help li::marker {
+  color: var(--primary);
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+}
+
+.help li strong {
+  display: block;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+}
+
+.help li span {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.help-note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.help .actions {
+  justify-content: flex-end;
+}
