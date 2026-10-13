@@ -49,6 +49,7 @@ const ICONS = {
   minus: "M5 12h14",
   copy: "M9 9h11v11H9z M5 15H4V4h11v1",
   trash: "M10 11v6M14 11v6M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2",
+  size: "M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7",
   reset: "M1 4v6h6M3.51 15a9 9 0 1 0 2.13-9.36L1 10",
 };
 
@@ -147,17 +148,38 @@ export default function PlacedSignature({ item, scale, pw, ph, selected, onSelec
     const vx = (px - ax) * cos + (py - ay) * sin; // vector ancla -> puntero, sin girar
     const vy = -(px - ax) * sin + (py - ay) * cos;
     const want = Math.max(Math.abs(vx), Math.abs(vy) / asp);
-    // Paso más cercano al deseado que entre en la página.
-    const order = [...steps].sort((a, b) => Math.abs(a - want) - Math.abs(b - want));
-    for (const w of order) {
+    // Centro que tendría la firma con ancho w y la esquina opuesta fija.
+    const at = (w: number) => {
       const [ex, ey] = R((sx * w) / 2, (sy * w * asp) / 2);
-      const ncx = ax + ex;
-      const ncy = ay + ey;
-      if (fits(ncx, ncy, w, w * asp, d.rot, pw, ph)) {
-        onChange({ w, x: ncx - w / 2, y: ncy - (w * asp) / 2 });
-        return;
+      return [ax + ex, ay + ey];
+    };
+    const ok = (w: number) => {
+      const [ncx, ncy] = at(w);
+      return fits(ncx, ncy, w, w * asp, d.rot, pw, ph);
+    };
+    let w: number | undefined;
+    if (e.shiftKey) {
+      // Shift: salta entre los pasos, usando el más cercano que entre en la página.
+      w = [...steps].sort((a, b) => Math.abs(a - want) - Math.abs(b - want)).find(ok);
+    } else {
+      // Libre: sigue al puntero y se frena donde la firma tocaría el borde de la página.
+      const min = steps[0];
+      w = Math.max(want, min);
+      if (!ok(w)) {
+        if (!ok(min)) return;
+        let lo = min;
+        let hi = w;
+        for (let i = 0; i < 20; i++) {
+          const mid = (lo + hi) / 2;
+          if (ok(mid)) lo = mid;
+          else hi = mid;
+        }
+        w = lo;
       }
     }
+    if (w === undefined) return;
+    const [ncx, ncy] = at(w);
+    onChange({ w, x: ncx - w / 2, y: ncy - (w * asp) / 2 });
   }
 
   // Botones − / +: siguiente o anterior paso de tamaño. Crece centrado en horizontal y fijo en
@@ -166,6 +188,7 @@ export default function PlacedSignature({ item, scale, pw, ph, selected, onSelec
   const below = top * scale < 80; // el menú va debajo si no hay lugar arriba
   const smaller = steps.filter((s) => s < item.w - 0.5).pop();
   const bigger = steps.find((s) => s > item.w + 0.5 && bboxOf(s, s * asp, item.rot).bw <= pw && bboxOf(s, s * asp, item.rot).bh <= ph);
+  const initialW = startWidth(item.sig, pw, ph, undefined, item.rot);
   function resizeTo(w: number) {
     const nh = w * asp;
     const ncy = cy + (below ? -1 : 1) * ((nh - h) / 2);
@@ -211,6 +234,14 @@ export default function PlacedSignature({ item, scale, pw, ph, selected, onSelec
           </button>
           <button title="Agrandar" aria-label="Agrandar" disabled={bigger === undefined} onClick={() => resizeTo(bigger!)}>
             <Icon d={ICONS.plus} />
+          </button>
+          <button
+            title="Tamaño original"
+            aria-label="Tamaño original"
+            disabled={Math.abs(item.w - initialW) < 0.5}
+            onClick={() => resizeTo(initialW)}
+          >
+            <Icon d={ICONS.size} />
           </button>
           <button
             title="Restablecer giro"
