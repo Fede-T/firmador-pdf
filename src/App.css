@@ -124,8 +124,15 @@ button:disabled {
 }
 
 /* Firmas colocadas */
+/* Caja que envuelve a la firma girada: no captura clics, solo ubica el menú. */
+.sig-box {
+  position: absolute;
+  pointer-events: none;
+}
+
 .sig {
   position: absolute;
+  pointer-events: auto; /* .sig-box lo desactiva y se hereda */
   touch-action: none;
   cursor: move;
   user-select: none;
@@ -141,8 +148,33 @@ button:disabled {
 }
 
 /* Mientras se coloca una firma, un clic siempre coloca (aunque haya otra debajo). */
-.page.placing .sig {
+.page.placing .sig,
+.page.placing .sig-actions {
   pointer-events: none;
+}
+
+.rotate-handle {
+  position: absolute;
+  left: 50%;
+  top: -30px;
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
+  border: 1.5px solid var(--primary);
+  border-radius: 50%;
+  background: #fff;
+  cursor: grab;
+}
+
+.rotate-handle::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 1.5px;
+  height: 14px;
+  margin-left: -0.75px;
+  background: var(--primary);
 }
 
 .handle {
@@ -163,8 +195,9 @@ button:disabled {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  bottom: calc(100% + 8px);
+  bottom: calc(100% + 40px); /* deja lugar al tirador de giro */
   display: flex;
+  pointer-events: auto;
   gap: 6px;
   cursor: default;
 }

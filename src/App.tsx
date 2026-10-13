@@ -24,7 +24,7 @@ export default function App() {
   const [placed, setPlaced] = useState<Placed[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   // Firma que sigue al mouse hasta que se hace clic en una página.
-  const [pending, setPending] = useState<{ sig: Signature; w?: number } | null>(null);
+  const [pending, setPending] = useState<{ sig: Signature; w?: number; rot?: number } | null>(null);
   const [notice, setNotice] = useState("");
   const nextId = useRef(0);
   const file = useRef<{ path: string; bytes: Uint8Array } | null>(null); // PDF abierto
@@ -103,9 +103,9 @@ export default function App() {
     setSelectedId(null);
   }
 
-  function place(page: number, x: number, y: number, w: number) {
+  function place(page: number, x: number, y: number, w: number, rot: number) {
     const id = ++nextId.current;
-    setPlaced((l) => [...l, { id, sig: pending!.sig, page, x, y, w }]);
+    setPlaced((l) => [...l, { id, sig: pending!.sig, page, x, y, w, rot }]);
     setSelectedId(id);
     setPending(null);
     setNotice("");
@@ -147,9 +147,9 @@ export default function App() {
             onChange={(id, patch) => setPlaced((l) => l.map((s) => (s.id === id ? { ...s, ...patch } : s)))}
             onDelete={remove}
             onDuplicate={(id) => {
-              // La copia conserva el tamaño y se coloca con un clic, en cualquier página.
+              // La copia conserva tamaño y giro, y se coloca con un clic, en cualquier página.
               const s = placed.find((x) => x.id === id)!;
-              setPending({ sig: s.sig, w: s.w });
+              setPending({ sig: s.sig, w: s.w, rot: s.rot });
               setSelectedId(null);
             }}
             onPlace={place}

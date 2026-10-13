@@ -18,9 +18,10 @@ export type Signature = {
 /**
  * Firma colocada en una página. x, y, w están en puntos de la vista de la página
  * (origen arriba a la izquierda, ya con rotación y CropBox aplicados), así que no
- * dependen del zoom. El alto sale de la proporción de la firma.
+ * dependen del zoom. El alto sale de la proporción de la firma. x, y es la esquina de la
+ * caja sin rotar; `rot` (grados, horario) la gira alrededor de su centro.
  */
-export type Placed = { id: number; sig: Signature; page: number; x: number; y: number; w: number };
+export type Placed = { id: number; sig: Signature; page: number; x: number; y: number; w: number; rot: number };
 
 /** Punto ya suavizado, con su grosor. */
 export type Sample = { x: number; y: number; w: number };

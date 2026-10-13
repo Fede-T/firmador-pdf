@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { PDFPageProxy } from "./pdf";
-import PlacedSignature, { SigCanvas, fitWidth } from "./PlacedSignature";
+import PlacedSignature, { SigCanvas, placeAt, startWidth } from "./PlacedSignature";
 import type { Placed, Signature } from "./signature";
 
 type Props = {
@@ -8,15 +8,13 @@ type Props = {
   width: number;
   items: Placed[]; // firmas colocadas en esta página
   selectedId: number | null;
-  pending: { sig: Signature; w?: number } | null; // firma que sigue al mouse esperando el clic
+  pending: { sig: Signature; w?: number; rot?: number } | null; // firma que sigue al mouse esperando el clic
   onSelect: (id: number | null) => void;
-  onChange: (id: number, patch: Partial<Pick<Placed, "x" | "y" | "w">>) => void;
+  onChange: (id: number, patch: Partial<Pick<Placed, "x" | "y" | "w" | "rot">>) => void;
   onDelete: (id: number) => void;
   onDuplicate: (id: number) => void;
-  onPlace: (page: number, x: number, y: number, w: number) => void;
+  onPlace: (page: number, x: number, y: number, w: number, rot: number) => void;
 };
-
-const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
 
 /**
  * Una página del PDF. Ocupa su tamaño final desde el inicio (para que el scroll
@@ -49,14 +47,12 @@ export default function PdfPage({
 
   // Esquina superior izquierda (en puntos) de la firma pendiente centrada en el mouse,
   // sin salirse de la página.
-  const pendW = pending ? fitWidth(pending.sig, pw, ph, pending.w) : 0;
+  const pendRot = pending?.rot ?? 0;
+  const pendW = pending ? startWidth(pending.sig, pw, ph, pending.w, pendRot) : 0;
   const pendH = pending ? (pendW * pending.sig.h) / pending.sig.w : 0;
   function pendingPos(e: React.PointerEvent) {
     const r = box.current!.getBoundingClientRect();
-    return {
-      x: clamp((e.clientX - r.left) / scale - pendW / 2, 0, pw - pendW),
-      y: clamp((e.clientY - r.top) / scale - pendH / 2, 0, ph - pendH),
-    };
+    return placeAt((e.clientX - r.left) / scale, (e.clientY - r.top) / scale, pendW, pendH, pendRot, pw, ph);
   }
 
   useEffect(() => {
@@ -90,7 +86,7 @@ export default function PdfPage({
       onPointerDown={(e) => {
         if (!pending) return onSelect(null); // clic en la página: deselecciona
         const { x, y } = pendingPos(e);
-        onPlace(page.pageNumber, x, y, pendW);
+        onPlace(page.pageNumber, x, y, pendW, pendRot);
       }}
     >
       <canvas ref={canvas} style={{ width, height }} />
@@ -109,7 +105,10 @@ export default function PdfPage({
         />
       ))}
       {pending && ghost && (
-        <div className="sig ghost" style={{ left: ghost.x * scale, top: ghost.y * scale }}>
+        <div
+          className="sig ghost"
+          style={{ left: ghost.x * scale, top: ghost.y * scale, transform: `rotate(${pendRot}deg)` }}
+        >
           <SigCanvas sig={pending.sig} wpx={pendW * scale} />
         </div>
       )}
