@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
 import { drawStrokes, type Placed, type Signature } from "./signature";
 
-const DEFAULT_L = 150; // lado mayor inicial de una firma nueva, en puntos
+const DEFAULT_L = 95; // lado mayor inicial de una firma nueva, en puntos
 // Tamaños permitidos (puntos) del LADO MAYOR de la firma: el tamaño salta entre estos pasos,
 // como en Adobe. Usar el lado mayor evita que una firma alta y angosta salga gigante.
-const STEPS = [48, 60, 75, 95, 120, 150, 190, 240, 300, 380, 475];
+const STEPS = [2, 5, 10, 14, 18, 20, 28, 36, 42, 48, 54, 60, 75, 85, 95, 120, 150, 190, 240, 300, 380, 475];
 const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
 const rad = (deg: number) => (deg * Math.PI) / 180;
 
