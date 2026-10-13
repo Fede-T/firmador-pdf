@@ -1,19 +1,21 @@
 import { useEffect, useRef } from "react";
 import { drawStrokes, type Placed, type Signature } from "./signature";
 
-const DEFAULT_W = 150; // ancho inicial de una firma nueva, en puntos
-// Anchos permitidos (puntos): el tamaño siempre salta entre estos pasos, como en Adobe.
+const DEFAULT_L = 150; // lado mayor inicial de una firma nueva, en puntos
+// Tamaños permitidos (puntos) del LADO MAYOR de la firma: el tamaño salta entre estos pasos,
+// como en Adobe. Usar el lado mayor evita que una firma alta y angosta salga gigante.
 const STEPS = [48, 60, 75, 95, 120, 150, 190, 240, 300, 380, 475];
 const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
 
 /** Ancho que ocupa una firma en una página de pw x ph puntos: nunca más grande que la página. */
-export function fitWidth(sig: Signature, pw: number, ph: number, wanted = DEFAULT_W) {
-  return Math.min(wanted, pw * 0.9, (ph * 0.9 * sig.w) / sig.h);
+export function fitWidth(sig: Signature, pw: number, ph: number, wanted?: number) {
+  const w = wanted ?? DEFAULT_L / Math.max(1, sig.h / sig.w);
+  return Math.min(w, pw * 0.9, (ph * 0.9 * sig.w) / sig.h);
 }
 
 /** Paso más cercano a w que entre en `max` (si ninguno entra, el propio max). */
-function snap(w: number, max: number) {
-  const ok = STEPS.filter((s) => s <= max);
+function snap(w: number, max: number, k: number) {
+  const ok = STEPS.map((s) => s / k).filter((s) => s <= max);
   return ok.length ? ok.reduce((a, b) => (Math.abs(b - w) < Math.abs(a - w) ? b : a)) : max;
 }
 
@@ -90,7 +92,7 @@ export default function PlacedSignature({ item, scale, pw, ph, selected, onSelec
     const cx = (right ? d.ox + d.ow : d.ox) + dx;
     const cy = (bottom ? d.oy + oh : d.oy) + dy;
     const maxW = Math.min(right ? pw - ax : ax, (bottom ? ph - ay : ay) / asp); // que no se salga de la página
-    const w = snap(Math.max(Math.abs(cx - ax), Math.abs(cy - ay) / asp), maxW);
+    const w = snap(Math.max(Math.abs(cx - ax), Math.abs(cy - ay) / asp), maxW, Math.max(1, asp));
     onChange({ w, x: right ? ax : ax - w, y: bottom ? ay : ay - w * asp });
   }
 
@@ -98,8 +100,9 @@ export default function PlacedSignature({ item, scale, pw, ph, selected, onSelec
   // vertical respecto del borde pegado al menú, así los botones no se mueven bajo el mouse.
   const below = item.y * scale < 44; // el menú va debajo si no hay lugar arriba
   const maxPage = Math.min(pw, ph / asp);
-  const smaller = STEPS.filter((s) => s < item.w - 0.5).pop();
-  const bigger = STEPS.find((s) => s > item.w + 0.5 && s <= maxPage);
+  const steps = STEPS.map((s) => s / Math.max(1, asp)); // pasos expresados como ancho
+  const smaller = steps.filter((s) => s < item.w - 0.5).pop();
+  const bigger = steps.find((s) => s > item.w + 0.5 && s <= maxPage);
   function resizeTo(w: number) {
     onChange({
       w,
