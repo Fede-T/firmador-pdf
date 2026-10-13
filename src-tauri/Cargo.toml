@@ -1,6 +1,6 @@
 [package]
 name = "firmador-pdf"
-version = "0.1.0"
+version = "1.1.0"
 description = "Firmador de PDF con tableta gráfica, sin conexión"
 authors = ["Federico Troncoso"]
 edition = "2021"
